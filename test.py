@@ -1,4 +1,4 @@
-import requests, json, sys
+import requests
 from requests.auth import HTTPBasicAuth
 
 
