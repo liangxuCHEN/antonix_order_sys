@@ -51,7 +51,38 @@ def get_order_list():
         data=get_data
     )
 
+    return {'data':resp.json()['data'], 'token':data['data']['token']}
+
+
+def get_order_detail_list():
+    data = get_order_list()
+    print(data)
+    get_data = {'OrderID': data['data'][0]['id']}
+    resp = requests.get(
+        'http://localhost:5050/api/v1/order_detail_list',
+        auth=HTTPBasicAuth(data['token'], "111"),
+        data=get_data
+    )
     print(resp.status_code, resp.json())
 
+
+def get_archives_list():
+    data = user_test()
+    print(data)
+    # get_data = {
+    #     'page': 4,
+    #     'per_page': 50
+    # }
+    resp = requests.get(
+        'http://localhost:5050/api/v1/archives_list',
+        auth=HTTPBasicAuth(data['data']['token'], "111"),
+        # data=get_data
+    )
+
+    for d in resp.json()['data']:
+        print(d)
+    return {'data':resp.json()['data']}
+
+
 if __name__ == '__main__':
-    get_order_list()
+    get_archives_list()

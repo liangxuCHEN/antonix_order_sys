@@ -1,14 +1,22 @@
 from flask_restful import Resource, reqparse
 from __init__ import *
 from dbhelper import User
-from order import OrderListAPI
+from order import OrderListAPI, OrderDetailListAPI, ArchivesListAPI
+
 
 @auth.verify_password
 def verify_password(username_or_token, password):
+    # TODO:后面不要password, 只保留token
+    # TODO:根据权限返回用户
+    """
+    这是验证权限
+    :param username_or_token: 
+    :param password: 
+    :return: 
+    """
     user = User.verify_auth_token(username_or_token)
     if not user:
         user = User.query.filter_by(FullName=username_or_token).first()
-        #TODO: 后面就不要
         if user:
             user.hash_password()
             if not user.verify_password(password):
@@ -84,8 +92,11 @@ class UserAPI(Resource):
         return {"message": "OK", "data": content, "status": 200}, 200
 
 
+# API 设定
 api.add_resource(UserAPI, '/api/v1/open/user', endpoint='client.user')
 api.add_resource(OrderListAPI, '/api/v1/order_list', endpoint='client.order_list')
+api.add_resource(OrderDetailListAPI, '/api/v1/order_detail_list', endpoint='client.Order_detail_list')
+api.add_resource(ArchivesListAPI, '/api/v1/archives_list', endpoint='client.archives_list')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=5050)
