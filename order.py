@@ -12,6 +12,8 @@ class OrderListAPI(Resource):
         self.reqparser_get.add_argument("FStatusName")
         self.reqparser_get.add_argument("QuarterName")
         self.reqparser_get.add_argument("ClothesName")
+        self.reqparser_get.add_argument("begin_date")
+        self.reqparser_get.add_argument("end_date")
         self.reqparser_get.add_argument("page", type=int)
         self.reqparser_get.add_argument("per_page", type=int)
 
@@ -29,6 +31,11 @@ class OrderListAPI(Resource):
             query = query.filter(Order.QuarterName==args.QuarterName)
         if args.ClothesName:
             query = query.filter(Order.ClothesName==args.ClothesName)
+
+        if args.begin_date:
+            query = query.filter(Order.OrderDate >= args.begin_date)
+        if args.end_date:
+            query = query.filter(Order.OrderDate <= args.end_date)
         #排序
         query = query.order_by(db.desc(Order.OrderDate))
 

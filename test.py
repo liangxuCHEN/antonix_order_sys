@@ -43,7 +43,9 @@ def get_order_list():
     data = user_test()
     print(data)
     get_data = {
-        'CustomerNo': data['data']['CustomerNo']
+        'CustomerNo': data['data']['CustomerNo'],
+        'begin_date': '2018-05-25',
+        'end_date': '2018-05-26',
     }
     resp = requests.get(
         'http://localhost:5050/api/v1/order_list',
@@ -85,4 +87,4 @@ def get_archives_list():
 
 
 if __name__ == '__main__':
-    get_archives_list()
+    print(get_order_list())
