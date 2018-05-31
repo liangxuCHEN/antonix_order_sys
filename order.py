@@ -1,5 +1,6 @@
 from flask_restful import Resource, reqparse
-from dbhelper import Order, OrderDetailed, Archives, Picture
+from flask import g, request
+from dbhelper import Order, OrderDetailed, Archives, Employee
 from __init__ import auth, db
 
 
@@ -8,29 +9,37 @@ class OrderListAPI(Resource):
     def __init__(self):
         # ------获取订单-------
         self.reqparser_get = reqparse.RequestParser()
-        self.reqparser_get.add_argument("CustomerNo")
-        self.reqparser_get.add_argument("FStatusName")
-        self.reqparser_get.add_argument("QuarterName")
-        self.reqparser_get.add_argument("ClothesName")
+        self.reqparser_get.add_argument("FStatus")
+        self.reqparser_get.add_argument("Quarter")
+        self.reqparser_get.add_argument("ClothType")
         self.reqparser_get.add_argument("begin_date")
         self.reqparser_get.add_argument("end_date")
         self.reqparser_get.add_argument("page", type=int)
         self.reqparser_get.add_argument("per_page", type=int)
 
+        # ------新增订单--------
+        self.reqparser_post = reqparse.RequestParser()
+        self.reqparser_post.add_argument("order_details", type=list, location='json')
+        self.reqparser_post.add_argument("FollowEmpName", location='json')
+
         super(OrderListAPI, self).__init__()
 
     def get(self):
         args = self.reqparser_get.parse_args()
-        if not args.CustomerNo:
-            return {"message": "缺少参数", "data": "", "status": 501}, 200
+        if g.user:
+            CustomerNo = g.user.get_CustomerNo()
+        else:
+            return {"message": "TOKEN已经过期，请重新登录", "data": "", "status": 501}, 200
 
-        query = Order.query.filter_by(CustomerNo=args.CustomerNo)
-        if args.FStatusName:
-            query = query.filter(Order.FStatusName==args.FStatusName)
-        if args.QuarterName:
-            query = query.filter(Order.QuarterName==args.QuarterName)
-        if args.ClothesName:
-            query = query.filter(Order.ClothesName==args.ClothesName)
+        print(CustomerNo)
+
+        query = Order.query.filter_by(CustomerNo=CustomerNo)
+        if args.FStatus:
+            query = query.filter(Order.FStatus==args.FStatus)
+        if args.Quarter:
+            query = query.filter(Order.Quarter==args.Quarter)
+        if args.ClothType:
+            query = query.filter(Order.ClothType==args.ClothType)
 
         if args.begin_date:
             query = query.filter(Order.OrderDate >= args.begin_date)
@@ -46,6 +55,42 @@ class OrderListAPI(Resource):
 
         return {"message": "ok", "data": [e.to_json() for e in entities], "status": 200}, 200
 
+    def post(self):
+        """
+        新增订单
+        :return: 
+        """
+        return {"message": "暂不开放", "data": "", "status": 200}, 200
+
+        args = self.reqparser_post.parse_args()
+
+        if args.FollowEmpName:
+            FollowEmp = Employee.query.filter_by(EmpName=args.FollowEmpName).first()
+            if FollowEmp:
+                args['FollowEmp'] = FollowEmp
+
+        del (args['FollowEmpName'])
+
+        if not args.order_details:
+            return {"message": "缺少参数", "data": "", "status": 501}, 200
+
+
+        order_details = request.json['order_details']
+        for item in order_details:
+            print(type(item))
+            for k,v in item.items():
+                print(k,v)
+
+        del(args['order_details'])
+
+        args['CustomerNo'] = g.user.get_CustomerNo()
+
+        order = Order(**args)
+        db.session.add(order)
+        db.session.commit()
+
+        #print(order.to_json())
+        return {"message": "缺少参数", "data": order.to_json(), "status": 200}, 200
 
 
 class OrderDetailListAPI(Resource):

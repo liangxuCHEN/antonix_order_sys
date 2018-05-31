@@ -1,4 +1,5 @@
 from flask_restful import Resource, reqparse
+from flask import g
 from __init__ import *
 from dbhelper import User
 from order import OrderListAPI, OrderDetailListAPI, ArchivesListAPI
@@ -20,12 +21,13 @@ def verify_password(username_or_token, password):
         if user:
             user.hash_password()
             if not user.verify_password(password):
+                g.user = None
                 return False
         else:
+            g.user = None
             return False
 
-    print(user.to_json())
-
+    g.user = user
     return True
 
 @app.route('/api/test')
@@ -39,13 +41,13 @@ class UserAPI(Resource):
     def __init__(self):
         # ------修改密码-------
         self.reqparser_put = reqparse.RequestParser()
-        self.reqparser_put.add_argument("CustomerID", location="json")
-        self.reqparser_put.add_argument("PassWord", location="json")
-        self.reqparser_put.add_argument("new_password", location="json")
+        self.reqparser_put.add_argument("CustomerID")
+        self.reqparser_put.add_argument("PassWord")
+        self.reqparser_put.add_argument("new_password")
         # ------登录---------
         self.reqparser_post = reqparse.RequestParser()
-        self.reqparser_post.add_argument("FullName", location="json")
-        self.reqparser_post.add_argument("PassWord", location="json")
+        self.reqparser_post.add_argument("FullName")
+        self.reqparser_post.add_argument("PassWord")
         super(UserAPI, self).__init__()
 
     def put(self):
@@ -83,7 +85,6 @@ class UserAPI(Resource):
         else:
             return {"message": "用户不存在", "data": "", "status": 500}, 200
 
-        # print(user.to_json())
         content = {}
         token = user.generate_auth_token()
         content['token'] = token.decode('ascii')

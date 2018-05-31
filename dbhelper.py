@@ -1,6 +1,8 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
+
+from datetime import date, datetime, timedelta
 from __init__ import db, app
 
 
@@ -15,6 +17,12 @@ class User(db.Model):
     FullName = db.Column(db.Unicode(None))
     PassWord = db.Column(db.Unicode(None))
     CustomerNo = db.Column(db.Unicode(None))
+
+    def get_CustomerNo(self):
+        return self.CustomerNo
+
+    def get_CustomerID(self):
+        return self.CustomerID
 
     def to_json(self):
         return {
@@ -53,27 +61,57 @@ class Order(db.Model):
     """
     客户的订单
     """
-    __tablename__ = 'OrderV'
+    __tablename__ = 'Order'
     OrderID = db.Column(db.Integer, primary_key=True)
-    CustomerNo = db.Column(db.String)
+    CustomerNo = db.Column(db.String(50))
     TotalMoneyTax = db.Column(db.Float)
-    OrderNo = db.Column(db.String)
-    QuarterName = db.Column(db.String)
-    FStatusName = db.Column(db.String)
-    ClothesName = db.Column(db.String)
-    FollowEmpName = db.Column(db.String)
-    OrderDate = db.Column(db.DateTime)
+    OrderNo = db.Column(db.String(50))
+    Quarter = db.Column(db.Integer)
+    FStatus = db.Column(db.Integer)
+    ClothType = db.Column(db.Integer)
+    FollowEmp = db.Column(db.Integer)
+    IsRelease = db.Column(db.Integer)
+    Class = db.Column(db.Integer)
+    OrderDate = db.Column(db.DateTime, server_default=db.func.now())
+
+    def __init__(self, *args,  **kwargs):
+        #TODO:临时订单号生产，以后可能不要
+        today = date.today()
+        datetime_today = datetime.strptime(str(today), '%Y-%m-%d')
+        count = len(Order.query.filter(
+            Order.OrderDate >= datetime_today,
+            Order.OrderDate <= datetime_today + timedelta(days=1)
+        ).all()) + 1
+        # 暂时设定默认值
+        self.OrderNo = "OR%s%s" % (datetime_today.strftime('%Y%m%d'), '{:0>4}'.format(count))
+        self.FStatus = 0      # 未审批
+        self.IsRelease = 0    # 预备单
+        self.TotalMoneyTax = 0
+        self.Class = 144      # 销售下单
+
+        super(Order, self).__init__(*args, **kwargs)
 
     def to_json(self):
+
+            self.order_detail = OrderDetailed.query.filter_by(OrderID=self.OrderID).all()
+            self.FStatusName = Dictionaries.query.filter_by(DictionariesID=self.FStatus).first()
+            self.QuarterName = Dictionaries.query.filter_by(DictionariesID=self.Quarter).first()
+            self.ClothesName = Dictionaries.query.filter_by(DictionariesID=self.ClothType).first()
+            self.FollowEmpName = Employee.query.filter_by(EmployeeID=self.FollowEmp).first()
+            self.ClassName = Dictionaries.query.filter_by(DictionariesID=self.Class).first()
+
             return {
                 "id": self.OrderID,
                 "CustomerNo": self.CustomerNo,
                 "TotalMoneyTax": self.TotalMoneyTax,
                 "OrderNo": self.OrderNo,
-                "FStatusName": self.FStatusName,
-                "QuarterName": self.QuarterName,
-                "ClothesName": self.ClothesName,
-                "FollowEmpName": self.FollowEmpName,
+                "FStatusName": self.FStatusName.get_name() if self.FStatusName else "",
+                "QuarterName": self.QuarterName.get_name() if self.QuarterName else "",
+                "ClothesName": self.ClothesName.get_name() if self.ClothesName else "",
+                "FollowEmpName": self.FollowEmpName.get_name() if self.FollowEmpName else "",
+                "ClassName": self.ClassName.get_name() if self.ClassName else "",
+                "IsRelease": "正式订单" if self.IsRelease > 0 else "预备订单",
+                "order_detail": [e.to_json() for e in self.order_detail],
                 "OrderDate": str(self.OrderDate),
             }
 
@@ -161,3 +199,43 @@ class Picture(db.Model):
             "ClothesPictureID": self.ClothesPictureID,
             "URL": self.URL
         }
+
+
+class Dictionaries(db.Model):
+    """
+    字典解释
+    """
+    __tablename__ = 'Dictionaries'
+    DictionariesID = db.Column(db.Integer, primary_key=True)
+    DicName = db.Column(db.String)
+    Rmarks = db.Column(db.String)
+
+    def get_name(self):
+        return self.DicName
+
+    def to_json(self):
+        return {
+            "id": self.DictionariesID,
+            "DicName": self.DicName,
+            "Rmarks": self.Rmarks,
+        }
+
+class Employee(db.Model):
+    """
+    企业员工        
+    """
+    __tablename__ = 'Employee'
+    EmployeeID = db.Column(db.Integer, primary_key=True)
+    EmpName = db.Column(db.String)
+    Mobile = db.Column(db.String)
+
+    def get_name(self):
+        return self.EmpName
+
+    def to_json(self):
+        return {
+            "id": self.DictionariesID,
+            "EmpName": self.EmpName,
+            "Mobile": self.Mobile,
+        }
+
