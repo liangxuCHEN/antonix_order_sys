@@ -28,6 +28,8 @@ class OrderListAPI(Resource):
         args = self.reqparser_get.parse_args()
         if g.user:
             CustomerNo = g.user.get_CustomerNo()
+            if not CustomerNo:
+                return {"message": "TOKEN已经过期，请重新登录", "data": "", "status": 501}, 200
         else:
             return {"message": "TOKEN已经过期，请重新登录", "data": "", "status": 501}, 200
 

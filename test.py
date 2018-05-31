@@ -3,14 +3,14 @@ from requests.auth import HTTPBasicAuth
 import json
 
 def fake_data():
-    # required_field = {
-    #     "FullName": "dasf121",
-    #     "PassWord": "1234",
-    # }
     required_field = {
-        "FullName": "asdf",
-        "PassWord": "",
+        "FullName": "dasf121",
+        "PassWord": "1234",
     }
+    # required_field = {
+    #     "FullName": "asdf",
+    #     "PassWord": "",
+    # }
     # required_field = {
     #     'CustomerID': 2,
     #     'PassWord': '4321',
@@ -47,15 +47,22 @@ def get_order_list():
     data = user_test()
     print(data)
     get_data = {
-        'CustomerNo': data['data']['CustomerNo'],
+        # 'CustomerNo': data['data']['CustomerNo'],
         'begin_date': '2018-05-25',
         'end_date': '2018-05-26',
     }
+    # resp = requests.get(
+    #     'http://localhost:5050/api/v1/order_list',
+    #     auth=HTTPBasicAuth(data['data']['token'], "111"),
+    #     data=get_data
+    # )
     resp = requests.get(
         'http://localhost:5050/api/v1/order_list',
-        auth=HTTPBasicAuth(data['data']['token'], "111"),
-        data=get_data
+        # auth=HTTPBasicAuth("123", "111"),
+        # data=get_data
     )
+
+    print(resp.content)
 
     return {'data':resp.json()['data'], 'token':data['data']['token']}
 
@@ -117,4 +124,4 @@ def get_archives_list():
 
 
 if __name__ == '__main__':
-    print(json.dumps(post_new_order()))
+    print(get_order_list())
