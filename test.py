@@ -4,8 +4,8 @@ import json
 
 def fake_data():
     required_field = {
-        "FullName": "dasf121",
-        "PassWord": "1234",
+        "FullName": "sj",
+        "PassWord": "123",
     }
     # required_field = {
     #     "FullName": "asdf",
@@ -48,21 +48,19 @@ def get_order_list():
     print(data)
     get_data = {
         # 'CustomerNo': data['data']['CustomerNo'],
-        'begin_date': '2018-05-25',
-        'end_date': '2018-05-26',
+        # 'begin_date': '2018-05-25',
+        # 'end_date': '2018-05-26',
     }
-    # resp = requests.get(
-    #     'http://localhost:5050/api/v1/order_list',
-    #     auth=HTTPBasicAuth(data['data']['token'], "111"),
-    #     data=get_data
-    # )
     resp = requests.get(
         'http://localhost:5050/api/v1/order_list',
-        # auth=HTTPBasicAuth("123", "111"),
-        # data=get_data
+        auth=HTTPBasicAuth(data['data']['token'], "111"),
+        #data=get_data
     )
-
-    print(resp.content)
+    # resp = requests.get(
+    #     'http://localhost:5050/api/v1/order_list',
+    #     #auth=HTTPBasicAuth("123", "111"),
+    #     # data=get_data
+    # )
 
     return {'data':resp.json()['data'], 'token':data['data']['token']}
 
@@ -73,12 +71,10 @@ def post_new_order():
     post_data = {
         'order_details': [
             {
-                "ConsumerNo": data['data']['CustomerNo'],
                 "Count": 10,
                 "Size": 129,
             },
             {
-                "ConsumerNo": data['data']['CustomerNo'],
                 "Count": 99,
                 "Size": 130,
             },

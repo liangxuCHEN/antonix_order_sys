@@ -62,37 +62,44 @@ class OrderListAPI(Resource):
         新增订单
         :return: 
         """
-        return {"message": "暂不开放", "data": "", "status": 200}, 200
+        # return {"message": "暂不开放", "data": "", "status": 200}, 200
+        # try:
+        print('========POST==========')
 
-        args = self.reqparser_post.parse_args()
-
-        if args.FollowEmpName:
-            FollowEmp = Employee.query.filter_by(EmpName=args.FollowEmpName).first()
-            if FollowEmp:
-                args['FollowEmp'] = FollowEmp
-
-        del (args['FollowEmpName'])
-
-        if not args.order_details:
-            return {"message": "缺少参数", "data": "", "status": 501}, 200
+        #args = self.reqparser_post.parse_args()
+        #
+        print(request.args)
+        print(request.data)
+        print(request.json)
+        #
+        # if args.FollowEmpName:
+        #     FollowEmp = Employee.query.filter_by(EmpName=args.FollowEmpName).first()
+        #     if FollowEmp:
+        #         args['FollowEmp'] = FollowEmp
+        #
+        # del (args['FollowEmpName'])
+        #
+        # if not args.order_details:
+        #     return {"message": "缺少参数", "data": "", "status": 501}, 200
 
 
         order_details = request.json['order_details']
-        for item in order_details:
-            print(type(item))
-            for k,v in item.items():
-                print(k,v)
+        # for item in order_details:
+        #     print(type(item))
+        #     for k,v in item.items():
+        #         print(k,v)
 
-        del(args['order_details'])
+        # del(args['order_details'])
 
-        args['CustomerNo'] = g.user.get_CustomerNo()
+        # args['CustomerNo'] = g.user.get_CustomerNo()
 
-        order = Order(**args)
-        db.session.add(order)
-        db.session.commit()
+        #TODO:暂时没有数据表存，后面再保存，现在返回处理的数据结果
+        # order = Order(**args)
+        # db.session.add(order)
+        # db.session.commit()
 
         #print(order.to_json())
-        return {"message": "缺少参数", "data": order.to_json(), "status": 200}, 200
+        return {"message": "返回输入数据，检验是否与输入相符", "data": {'order':order_details, 'customerNo': g.user.get_CustomerNo()}, "status": 200}, 200
 
 
 class OrderDetailListAPI(Resource):
